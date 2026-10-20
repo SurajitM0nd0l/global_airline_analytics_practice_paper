@@ -1,0 +1,51 @@
+resources:
+  jobs:
+    global_airline_job:
+      name: global_airline_job
+      email_notifications:
+        on_failure:
+          - surajitm0nd0l12@gamil.com
+      schedule:
+        quartz_cron_expression: 33 0 6 * * ?
+        timezone_id: Asia/Calcutta
+        pause_status: PAUSED
+      tasks:
+        - task_key: bronze_Ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/surajitm0nd0l12@gmail.com/global_airline_analytics_practice_paper/3rd_practice_paper/Bronze_Ingestion
+            source: WORKSPACE
+          max_retries: 2
+          min_retry_interval_millis: 600000
+          disable_auto_optimization: false
+        - task_key: Silver_Transform
+          depends_on:
+            - task_key: bronze_Ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/surajitm0nd0l12@gmail.com/global_airline_analytics_practice_paper/3rd_practice_paper/Silver_Transform
+            source: WORKSPACE
+          max_retries: 2
+          min_retry_interval_millis: 600000
+          disable_auto_optimization: false
+        - task_key: Gold_Model
+          depends_on:
+            - task_key: Silver_Transform
+          notebook_task:
+            notebook_path: /Workspace/Users/surajitm0nd0l12@gmail.com/global_airline_analytics_practice_paper/3rd_practice_paper/gold_model
+            source: WORKSPACE
+          max_retries: 1
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: false
+        - task_key: Data_Quality_Checks
+          depends_on:
+            - task_key: Gold_Model
+          notebook_task:
+            notebook_path: /Workspace/Users/surajitm0nd0l12@gmail.com/global_airline_analytics_practice_paper/3rd_practice_paper/data_quality_checks
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: global_airline
+      performance_target: PERFORMANCE_OPTIMIZED
